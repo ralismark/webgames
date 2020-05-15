@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Basalt Bashers - Libless Canvas</title>
+
+	<script src="vector.js"></script>
+	<script src="spritesheet.js"></script>
+	<script src="tween.js"></script>
+	<script src="board.js"></script>
+	<script src="ai.js"></script>
+<style>
+	/* get better rendering */
+	canvas {
+		image-rendering: optimizeSpeed;             /* Older versions of FF          */
+		image-rendering: -moz-crisp-edges;          /* FF 6.0+                       */
+		image-rendering: -webkit-optimize-contrast; /* Safari                        */
+		image-rendering: -o-crisp-edges;            /* OS X & Windows Opera (12.02+) */
+		image-rendering: pixelated;                 /* Awesome future-browsers       */
+		-ms-interpolation-mode: nearest-neighbor;   /* IE                            */
+	}
+</style>
+</head>
+<body>
+
+	<div>
+		<canvas width="800" height="480"></canvas>
+	</div>
+
+</body>
+
+<!-- Putting this at the bottom makes everything easier, as we don't need to
+     worry about the DOM loading first -->
+<script src="main.js"></script>
+</html>
+
