@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='UTF-8'>
+<script src="https://gistcdn.githack.com/ralismark/5f4588ae7313a728212adda4f868a3b8/raw/41dddce14a6870df76d6cba633d5b01c9c8142c2/rtclib.js"></script>
+</head><body>
+	<canvas></canvas>
+
+<div style="display: flex">
+	<div id="host" style="flex-grow: 1; width: 0">
+		<h2>Alice, the host (<span id="state">new</span>)</h2>
+		<div>
+			<p>Offer</p>
+			<textarea id="ta-offer"></textarea>
+		</div>
+		<hr>
+		<div>
+			<p>Put answer (from Bob) here</p>
+			<textarea id="ta-answer"></textarea>
+		</div>
+		<button onclick="pc1_input()">Accept answer</button>
+	</div>
+	<div id="client" style="flex-grow: 1; width: 0">
+		<h2>Bob, the client (<span id="state">new</span>)</h2>
+		<div>
+			<p>Put offer (from Alice) here</p>
+			<textarea id="ta-offer"></textarea>
+		</div>
+		<button onclick="pc2_input()">Generate Answer</button>
+		<hr>
+		<div>
+			<p>Answer</p>
+			<textarea id="ta-answer"></textarea>
+		</div>
+	</div>
+</div>
+
+<script>
+	let $ = q => document.querySelector(q);
+
+	const stun_config = { "iceServers": [ {"urls":  "stun:stun.l.google.com:19305"} ] }
+
+	console.log("---\nwindow.A is a RTC.Host for Alice\nwindow.B is a RTC.Client for Bob\n---");
+
+	let A = new RTC.Host(stun_config);
+	A.ready.then(() => console.log("ready: Alice"));
+	A.onstate(state => {
+		$("#host #state").innerText = state;
+		console.log("state: Alice is", state);
+	});
+
+	let B = new RTC.Client(stun_config);
+	B.ready.then(() => console.log("ready: Bob"));
+	B.onstate(state => {
+		$("#client #state").innerText = state;
+		console.log("state: Bob is", state);
+	});
+
+	async function startup() {
+		let offer = await A.offer();
+		console.log("connect: Alice generated offer");
+		$("#host #ta-offer").value = JSON.stringify(offer);
+	}
+
+	async function pc1_input() {
+		let answer = JSON.parse($("#host #ta-answer").value);
+		console.log("connect: Alice got answer");
+		await A.accept(answer);
+	}
+
+	async function pc2_input() {
+		let offer = JSON.parse($("#client #ta-offer").value);
+		console.log("connect: Bob got offer");
+		let answer = await B.answer(offer);
+		console.log("connect: Bob generated response");
+		$("#client #ta-answer").value = JSON.stringify(answer);
+	}
+
+	async function connect() {
+		await A.accept(await B.answer(await A.offer()));
+	}
+
+	startup();
+</script><script>
+	"use strict";
+
+let C = document.querySelector("canvas").getContext("2d");
+
+let gconst = {
+	r: 5, // ball radius
+	h: 50, // paddle size
+	g: 10, // back to back of paddle
+	s: 20, // back to surface of paddle
+	v: 200, // paddle velocity
+	bp: [C.canvas.width/2,C.canvas.height/2], // initial ball position
+	bv: [70, 70], // initial ball velocity
+};
+
+let gstate = {
+	p1x: 0, // player 1 position
+	p1v: 0, // player 1 velocity
+	p2x: 0, // player 2 position
+	p2v: 0, // player 2 velocity
+
+	bp: gconst.bp, // ball position
+	bv: gconst.bv, // ball velocity
+
+	time: Date.now(),
+};
+
+function render(state) {
+	C.fillStyle = "rgba(0, 0, 0, 0.2)";
+	C.fillRect(0, 0, C.canvas.width, C.canvas.height);
+	C.fillStyle = "white";
+	C.fillRect(state.bp[0] - gconst.r, state.bp[1] - gconst.r, 2*gconst.r, 2*gconst.r);
+
+	C.fillRect(gconst.g, gstate.p1x, gconst.s - gconst.g, gconst.h);
+	C.fillRect(C.canvas.width - gconst.s, gstate.p2x, gconst.s - gconst.g, gconst.h);
+}
+
+function clamp(x, min, max) {
+	if(x < min) return min;
+	if(x > max) return max;
+	return x;
+}
+
+
+function step(state) {
+	let out = JSON.parse(JSON.stringify(state)); // deep clone
+	out.time = Date.now();
+	let delta = (out.time - state.time) / 1000;
+	out.p1x = clamp(out.p1x + delta * gconst.v * out.p1v, 0, C.canvas.height - gconst.h);
+	out.p2x = clamp(out.p2x + delta * gconst.v * out.p2v, 0, C.canvas.height - gconst.h);
+
+	let reflect = (p, a) => a - (p - a);
+
+	out.bp[1] += delta * out.bv[1];
+	if(out.bp[1] <= gconst.r) {
+		out.bp[1] = reflect(out.bp[1], gconst.r);
+		out.bv[1] *= -1;
+	}
+	if(out.bp[1] >= C.canvas.height - gconst.r) {
+		out.bp[1] = reflect(out.bp[1], C.canvas.height - gconst.r);
+		out.bv[1] *= -1;
+	}
+
+	let overlaps = (x) => {
+		return out.bp[1] - gconst.r <= x + gconst.h &&
+			out.bp[1] + gconst.r >= x;
+	};
+
+	out.bp[0] += delta * out.bv[0];
+	if(out.bp[0] <= gconst.s + gconst.r) {
+		if(overlaps(out.p1x)) {
+			out.bp[0] = reflect(out.bp[0], gconst.s + gconst.r);
+			out.bv[0] *= -1;
+		} else {
+			out.bp = gconst.bp;
+			out.bv = gconst.bv;
+		}
+	} else if(out.bp[0] >= C.canvas.width - (gconst.s + gconst.r)) {
+		if(overlaps(out.p2x)) {
+			out.bp[0] = reflect(out.bp[0], C.canvas.width - (gconst.s + gconst.r));
+			out.bv[0] *= -1;
+		} else {
+			out.bp = gconst.bp;
+			out.bv = gconst.bv;
+		}
+	}
+	return out;
+}
+
+setInterval(() => render(gstate), 1000/60);
+setInterval(() => gstate = step(gstate), 1000/60);
+
+function handleKeydown(key, state, local) {
+	console.log("hkd", key, local);
+	state = JSON.parse(JSON.stringify(state));
+	if(local && key == "w") {
+		state.p1v = -1;
+		sendKeydown("o");
+	} else if(local && key == "s") {
+		state.p1v = 1;
+		sendKeydown("l");
+	} else if(!local && key == "o") {
+		state.p2v = -1;
+	} else if(!local && key == "l") {
+		state.p2v = 1;
+	}
+	return state;
+}
+
+document.addEventListener("keydown", event => gstate = handleKeydown(event.key, gstate, true));
+
+function handleKeyup(key, state, local) {
+	console.log("hku", key, local);
+	state = JSON.parse(JSON.stringify(state));
+	if(local && (key == "w" || key == "s")) {
+		state.p1v = 0;
+		sendKeyup(key == "w" ? "o" : "l");
+	} else if(!local && (key == "o" || key == "l")) {
+		state.p2v = 0;
+	}
+	return state;
+}
+
+document.addEventListener("keyup", event => gstate = handleKeyup(event.key, gstate, true));
+
+let P = Promise.race([A.ready.then(() => A), B.ready.then(() => B)]).then(async function(peer) {
+	console.log("join", peer);
+	let keyd = await peer.channel("keydown");
+	keyd.onmessage = event => gstate = handleKeydown(event.data, gstate, false);
+	let keyu = await peer.channel("keyup");
+	keyu.onmessage = event => gstate = handleKeyup(event.data, gstate, false);
+	
+	let pack = () => {
+		return {
+			p2x: gstate.p1x,
+			p2v: gstate.p1v,
+
+			bp: [C.canvas.width - gstate.bp[0], gstate.bp[1]],
+			bv: [-gstate.bv[0], gstate.bv[1]],
+
+			time: gstate.time,
+		}
+	};
+
+	let merge = (diff) => {
+		gstate = Object.assign({}, gstate, diff);
+	};
+
+	let sync = await peer.channel("sync");
+	let lst = null;
+	sync.onmessage = event => {
+		let now = Date.now();
+		if(lst !== null) {
+			console.log("sync ping", now - lst, "ms");
+		}
+		lst = now;
+		merge(JSON.parse(event.data));
+		setTimeout(() => {
+			sync.send(JSON.stringify(pack()));
+		}, 50);
+	};
+	if(peer === A) sync.send(JSON.stringify(pack()));
+
+	return peer;
+});
+
+function sendKeydown(key) {
+	P.then(async function(peer) {
+		let channel = await peer.channel("keydown");
+		channel.send(key);
+	});
+}
+
+function sendKeyup(key) {
+	P.then(async function(peer) {
+		let channel = await peer.channel("keyup");
+		channel.send(key);
+	});
+}
+
+</script>
+</body>
+</html>
