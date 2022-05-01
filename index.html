@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>ralismark's webgames index</title>
+<style>
+body {
+  margin: 2rem auto;
+  max-width: 40rem;
+  line-height: 1.4;
+}
+</style>
+</head>
+<body>
+  <h1>Welcome to ralismark webgames!</h1>
+  <p>
+    This is a collection of fun web things that I've made over the past few years.
+    Pretty much all of these were from when I was new to programming (Javascript being my first language), and so there's a conspicuous lack of good programming practices.
+  </p>
+  <ol>
+    <li>
+      <a href="pong.html">pong.html</a>,
+      a pong game with many options and local multiplayer support for 2 or 4 people!
+    </li>
+    <li>
+      <a href="ship.html">ship.html</a>,
+      a singleplayer ship game inspired by <a href="http://rustymoyher.com/astroparty/">Astro Party</a>.
+      Controls are
+      <ul>
+        <li>S to turn</li>
+        <li>A to shoot</li>
+        <li>Z to pause</li>
+        <li>X to resume</li>
+      </ul>
+      I never got around to coding up a config UI, but all the ships are specified in the <code>pl</code> variable and by editing it it's also possible to have multiple players (e.g. add <code>p2</code> to it).
+    </li>
+    <li>
+      <a href="basalt-bashers">Basalt Bashers</a>,
+      the web port of my project for the HSC Software Design and Development subject.
+      Controls are clicking the green squares.
+
+      The original was in pretty awful C++ and is <a href="https://github.com/ralismark/sd2/">available on github</a> if you want to <strike>laugh</strike> look at it.
+      This port was made quite a bit later than the other two projects.
+    </li>
+    <li>
+      <a href="gravity-testing">Gravity Testing</a>,
+      a simulation of n-body gravity.
+      <ul>
+        <li>Clicking moves the spaceship (the red rectangle) while preserving velocity</li>
+        <li>Space prompts for new position/velocity values</li>
+        <li>1 stops the simulation</li>
+        <li>Z starts simulation, and increases speed for each subsequent press</li>
+        <li>C clears the trail</li>
+        <li>X does something related to the trail, but I can't tell what</li>
+        <li>W/A/S/D boosts in those directions</li>
+      </ul>
+    </li>
+  </ol>
+  <p>
+    These use no frameworks (except for jQuery), have no build process or minifier, and just the DOM/Canvas API.
+    They're very low-polish and are built around being able to tweak the javascript code.
+    Everything is contained in the handwritten .js files and <a href="https://github.com/ralismark/webgames">available on Github</a>.
+  </p>
+</body>
+</html>
