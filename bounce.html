@@ -242,7 +242,10 @@ let P = Promise.race([A.ready.then(() => A), B.ready.then(() => B)]).then(async 
 			sync.send(JSON.stringify(pack()));
 		}, 50);
 	};
-	if(peer === A) sync.send(JSON.stringify(pack()));
+	if(peer === A) {
+		console.log("Initiating sync");
+		sync.send(JSON.stringify(pack()));
+	}
 
 	return peer;
 });

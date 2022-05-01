@@ -105,9 +105,10 @@ function getWeights(pos)
 		return null;
 	}
 
+	let dist = (p) => p.sub(W.p).magnitude;
+
 	let squares = gridToSquares(moveFn(pos));
-	squares.sort((a, b) => a.sub(W.p).magnitude - b.sub(W.p).magnitude).reverse(); // worst at front
-	return squares.map((p, i) => {
+	return squares.map(p => {
 		let score = 0;
 
 		if(p.x === W.p.x && p.y === W.p.y) {
@@ -129,7 +130,8 @@ function getWeights(pos)
 		}
 
 		// reward for proximity (by rank)
-		score += i;
+		// score += 5 * i / squares.length;
+		score += 5 * squares.filter(v => dist(v) > dist(p)).length / squares.length;
 
 		// penalise staying still
 		if(p.x === pos.x && p.y === pos.y) {

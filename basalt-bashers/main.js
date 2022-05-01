@@ -2,7 +2,7 @@
 
 const fps = 30; // renders per second
 const ups = 30; // updates per second
-const debug_overlay = false; // show AI guides
+let debug_overlay = false; // show AI guides
 
 let score = 0;
 
